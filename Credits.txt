@@ -1,0 +1,82 @@
+GAME ENGINE: 
+RPGMAKER MZ
+
+Developers:
+Bloodkin
+
+Plugins:
+FOSSIL
+BattleArrowMiniGame	Bloodkin
+VisuMZ_0_Core Engine	Team VisuStella, Yanfly, Arisu, Olivia, Irina
+VisuMZ_1_MessageCore	Team VisuStella, Yanfly, Arisu, Olivia, Irina(http://www.yanfly.moe/wiki/Battle_Core_VisuStella_MZ#Credits)
+VisuMZ_1_EventsMoveCore	Team VisuStella, Yanfly, Arisu, Olivia, Irina
+VisuMZ_1_OptionsCore	Team VisuStella, Yanfly, Arisu, Olivia, Irina
+VisuMZ_1_ItemsEquipsCoreTeam VisuStella, Yanfly, Arisu, Olivia, Irina
+SRD_UltraBase		SRDude
+SRD_HudmakerUltra 	SRDude
+BloodkinSkillWindowMove	Bloodkin
+VisuMZ_4_EncounterEffects Team VisuStella, Yanfly, Arisu, Olivia, Irina
+EliMZ_Book		hakuenstudio
+EliMZ_ButtonCommonEvents hakuenstudio
+YEP_RegionRestrictions Yanfly
+BloodkinItemProwlerCloak	Bloodkin
+BloodkinProwlerModeBattle	Bloodkin
+BloodkinLeechItems		Bloodkin
+LeechEffect			Bloodkin
+GameTitleLocation 		Bloodkin
+BloodkinResourceColours		Bloodkin
+BloodkinFogOfWarMaps		Bloodkin	
+ArmorEventTriggerUpdated	Bloodkin
+UniqueRandomNumberGenerator	Bloodkin
+BloodkinTakeCoverOpacity	Bloodkin
+BloodkinMenuControl		Bloodkin
+GrappleTargetLock		Bloodkin
+
+Scripting:
+Bloodkin
+
+Art:
+RTP - RPGMakerMZ/RPGMakerMV/RpgMakerVXAce/RPGMAKERXP
+PARRALAX MAPPING: Sturmfels, 
+UI elements, some sprites - Bloodkin
+Various map tiles, sprites, and more art - Avery https://forums.rpgmakerweb.com/index.php?threads/avys-mv-stuff.53317/ (need to give free copy)
+Various animal sprites - whtdragon https://forums.rpgmakerweb.com/index.php?threads/whtdragons-animals-and-running-horses-now-with-more-dragons.53552/ 
+Blood splatter animation - sinestesiaguy https://instagram.com/sinestesiaguy/
+Bird Sprites - "[LPC] Birds" by bluecarrot16, commissioned by castelonia. https://opengameart.org/content/lpc-birds 
+Rabbit Sprites - PixelFarm (https://bitbucket.org/tebruno99/pixelfarm) Stephen "Redshrike" Challener
+Stephen Challener (Redshrike), commissioned by Tebruno99 and hosted by OpenGameArt.org
+https://opengameart.org/content/bunny-rabbit-lpc-style-for-pixelfarm 
+Spider Sprite by engvee <https://engvee.itch.io/animated-isometric-spider2>
+Enemy Characters/Battlebacks - A.I(Dall-e)
+Enemy Characters/Battlebacks - A.I(MidJourney)
+Enemy Characters/Battlebacks Remixing - Bloodkin
+Some Tilesets - Bloodkin
+Effekseer Effects - Bloodkin
+
+Writing:
+Bloodkin
+
+Eventing:
+Bloodkin
+
+Mapping:
+Bloodkin
+
+Music:
+RTP music - RPGMAKER MZ/MV/VXACE/XP
+Xilla's Final Theme - RPGMAKER XP OST Remaster Boss 4 by Hatokman https://youtu.be/J3CdHcD6yJw?list=PLvsZ_uZZSNHbNcfwOwnVLxzWvr3xPpMBc
+Harpy singing SE - pixabay https://pixabay.com/users/pixabay-1/
+Fox SE - https://pixabay.com/sound-effects/urban-fox-call-26795/
+Bear Growling SE2 - https://quicksounds.com/sound/2727/black-bear-single-roar-2
+bear growling SE - Sound Effect by UNIVERSFIELD from Pixabay
+Fox Guard 5 SE - https://pixabay.com/sound-effects/demonic-woman-scream-6333/
+Spider SE - Pixabay
+Dream Fairy Singing SE: Elahi from Pixabay
+Witch Queen Music by Luca Francini from Pixabay
+Typewriter SE -  GregorQuendel_SoundDesign https://pixabay.com/sound-effects/printer-typewriter-error-139711/
+
+Contributors:
+
+Game Testers:
+Threezy - https://threezy.itch.io/
+Joe P.

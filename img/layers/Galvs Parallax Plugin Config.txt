@@ -1,0 +1,12 @@
+LAYER 9 FogAnim_00 -1 0 100 7 0 0 0 (optional)
+
+Use this in map notes with de plugin 
+activated:
+
+LAYER_S 8 Fog_01 0 0 255 8 0
+LAYER_S 7 Light_01 0 0 255 7 1
+LAYER_S 6 Shadow_01 0 0 255 6 2
+LAYER_S 5 Par_01 0 0 255 5 0
+LAYER_S 1 Ground_01 0 0 255 1 0
+
+Below the parallax layers it is possible to use autotiles (like animated water) or a parallax background.

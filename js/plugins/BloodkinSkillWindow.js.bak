@@ -1,0 +1,9 @@
+Scene_Battle.prototype.createSkillWindow = function() {
+    var wy = this._helpWindow.y + this._helpWindow.height;
+    var wh = this._statusWindow.y - wy;
+    this._skillWindow = new Window_BattleSkill(0, wy, Graphics.boxWidth, wh);
+    this._skillWindow.setHelpWindow(this._helpWindow);
+    this._skillWindow.setHandler('ok',     this.onSkillOk.bind(this));
+    this._skillWindow.setHandler('cancel', this.onSkillCancel.bind(this));
+    this.addWindow(this._skillWindow);
+};
