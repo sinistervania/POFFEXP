@@ -222,28 +222,22 @@
                             actor.removeState(stateId);
                         }
                     });
-
+    
                     // Apply new states
                     config.stateIds.forEach(stateId => {
                         actor.addState(stateId);
                     });
-
-                    // Track the transformation with its states
-                    deductPoints(actor.actorId(), true, {
-                        stateIds: config.stateIds,
-                        transformationId: skill.id
-                    });
-                    
+    
+                    // Refresh actor states and transformation ID
                     actor.refresh();
                     actor.assignweaponTransformationId();
                 }
-            } else if ([3, 4, 11, 2, 7, 8].includes(skill.scope)) {
-                deductPoints(actor.actorId(), false);
             }
         }
         
         _Scene_Battle_onSkillOk.call(this);
     };
+    
 
     const _Scene_Battle_onEnemyOk = Scene_Battle.prototype.onEnemyOk;
     Scene_Battle.prototype.onEnemyOk = function() {
@@ -285,9 +279,9 @@
             
             actionProcessed.add(actionKey);
             
-            if ([2, 10].includes(item.scope)) {
+            if ([0].includes(item.scope)) {
                 deductPoints(actor.actorId(), false);
-            } else if ([1, 7, 8, 9].includes(item.scope)) {
+            } else if ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].includes(item.scope)) {
                 Scene_Battle.prototype.confirmItemUse = this.onItemOk.bind(this);
                 this.onEnemyOk = function() {
                     if (!actionProcessed.has(`${actionKey}_target`)) {

@@ -294,13 +294,13 @@
     
         if (this.isPerfectAccuracy || (skill.hitType === Game_Action.HITTYPE_CERTAIN)) {
             this.bitmap = this.perfectBitmap;
-            console.log("Display Perfect Bitmap");
+            
         } else if (skill.hitType === Game_Action.HITTYPE_MAGICAL) {
             this.bitmap = this.magicBitmap;
-            console.log("Display Magic Bitmap");
+            
         } else {
             this.bitmap = this.normalBitmap;
-            console.log("Display Normal Bitmap");
+            
         }
     };
 
