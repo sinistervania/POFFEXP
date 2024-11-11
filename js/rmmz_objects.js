@@ -1553,7 +1553,7 @@ Game_Action.prototype.isForAll = function() {
 };
 
 Game_Action.prototype.needsSelection = function() {
-    return this.checkItemScope([1, 7, 9, 12]);
+    return this.checkItemScope([1, 2, 7, 8, 9, 11, 12, 14]);
 };
 
 Game_Action.prototype.numTargets = function() {
