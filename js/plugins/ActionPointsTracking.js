@@ -6,49 +6,49 @@
  * @text Actor 1 Variable ID
  * @type variable
  * @desc Variable to store action times for actor 1.
- * @default 1
+ * @default 592
  * 
  * @param actor2VariableId
  * @text Actor 2 Variable ID
  * @type variable
  * @desc Variable to store action times for actor 2.
- * @default 1
+ * @default 593
  * 
  * @param actor3VariableId
  * @text Actor 3 Variable ID
  * @type variable
  * @desc Variable to store action times for actor 3.
- * @default 1
+ * @default 593
  * 
  * @param actor4VariableId
  * @text Actor 4 Variable ID
  * @type variable
  * @desc Variable to store action times for actor 4.
- * @default 1
+ * @default 593
  * 
  * @param actor5VariableId
  * @text Actor 5 Variable ID
  * @type variable
  * @desc Variable to store action times for actor 5.
- * @default 1
+ * @default 593
  * 
  * @param actor6VariableId
  * @text Actor 6 Variable ID
  * @type variable
  * @desc Variable to store action times for actor 6.
- * @default 1
+ * @default 593
  *
  * @help Ensures action points are deducted only after target confirmation for targeted actions and immediately for consumable items.
  */
 
 (() => {
     const parameters = PluginManager.parameters('ActionPointsTracking');
-    const actor1VariableId = Number(parameters['actor1VariableId'] || 1);
-    const actor2VariableId = Number(parameters['actor2VariableId'] || 1);
-    const actor3VariableId = Number(parameters['actor3VariableId'] || 1);
-    const actor4VariableId = Number(parameters['actor4VariableId'] || 1);
-    const actor5VariableId = Number(parameters['actor5VariableId'] || 1);
-    const actor6VariableId = Number(parameters['actor6VariableId'] || 1);
+    const actor1VariableId = Number(parameters['actor1VariableId'] || 592);
+    const actor2VariableId = Number(parameters['actor2VariableId'] || 593);
+    const actor3VariableId = Number(parameters['actor3VariableId'] || 593);
+    const actor4VariableId = Number(parameters['actor4VariableId'] || 593);
+    const actor5VariableId = Number(parameters['actor5VariableId'] || 593);
+    const actor6VariableId = Number(parameters['actor6VariableId'] || 593);
 
     let deductionCounts = {}; // Object to track the number of deductions for each actor
 
@@ -130,19 +130,6 @@
         originalActorOk.call(this);
     };
 
-    // Handle skill confirmations
-    const originalOnSkillOk = Scene_Battle.prototype.onSkillOk;
-    Scene_Battle.prototype.onSkillOk = function() {
-        const actor = BattleManager.actor();
-        if (actor) {
-            const item = this._skillWindow.item();
-            if (item && ([3, 4, 11, 2, 7, 8].includes(item.scope))) {
-                deductPoints(actor.actorId());
-            }
-        }
-        originalOnSkillOk.call(this);
-    };
-
     // Adjusted item confirmations to correctly handle consumable and targeted items
     const originalOnItemOk = Scene_Battle.prototype.onItemOk;
     Scene_Battle.prototype.onItemOk = function() {
@@ -150,10 +137,8 @@
         if (actor) {
             const item = this._itemWindow.item();
             if (item) {
-                // Immediate deduction for items with a scope of targeting all enemies
-                if ([2, 10].includes(item.scope)) {
-                    deductPoints(actor.actorId());
-                } else if ([1, 7, 8, 9].includes(item.scope)) { // Targeted items
+
+                    if ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].includes(item.scope)) { // Targeted items
                     // Deduct points only after a target is confirmed
                     Scene_Battle.prototype.confirmItemUse = this.onItemOk.bind(this);
                     this.onEnemyOk = function() {
@@ -172,13 +157,4 @@
         originalOnItemOk.call(this);
     };
 
-    // Correct the guard command to deduct points
-    const originalCommandGuard = Scene_Battle.prototype.commandGuard;
-    Scene_Battle.prototype.commandGuard = function() {
-        const actor = BattleManager.actor();
-        if (actor) {
-            deductPoints(actor.actorId());
-        }
-        originalCommandGuard.call(this);
-    };
 })();
