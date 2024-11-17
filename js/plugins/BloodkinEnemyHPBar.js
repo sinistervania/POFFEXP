@@ -254,7 +254,7 @@
             const ghostColor = ColorManager.textColor(ghostBarColorIndex);
 
             // Draw the HP bar outline
-            this.bitmap.fillRect(0, 0, this._hpGaugeWidth + outlineSize * 2, this._hpGaugeHeight + outlineSize * 2, '#000000'); // Black outline
+            this.bitmap.fillRect(0, 0, this._hpGaugeWidth + outlineSize * 2, this._hpGaugeHeight + outlineSize * 2, '#000000');
 
             // Draw the HP bar background
             this.bitmap.fillRect(outlineSize, outlineSize, this._hpGaugeWidth, this._hpGaugeHeight, backgroundColor);
@@ -264,6 +264,26 @@
 
             // Draw the HP bar foreground
             this.bitmap.gradientFillRect(outlineSize, outlineSize, this._hpGaugeWidth * hpRate, this._hpGaugeHeight, color1, color2);
+
+            // Draw markers for every 100 HP
+            this.drawHPIncrementMarkers();
+        }
+
+        drawHPIncrementMarkers() {
+            const totalIncrements = Math.floor(this._enemy.mhp / 100);
+            const markerWidth = 2;
+            const markerHeight = this._hpGaugeHeight + outlineSize * 2;
+            
+            for (let i = 1; i <= totalIncrements; i++) {
+                const hpRatio = (i * 100) / this._enemy.mhp;
+                if (hpRatio < 1) { // Only draw if not at the end
+                    const xPos = Math.floor(outlineSize + this._hpGaugeWidth * hpRatio - markerWidth / 2);
+                    // Draw black outline
+                    this.bitmap.fillRect(xPos - 1, 0, markerWidth + 1, markerHeight, '#000000');
+                    // Draw white marker
+                    this.bitmap.fillRect(xPos, 1, markerWidth, markerHeight - 2, '#e1cb89');
+                }
+            }
         }
 
         getHoveredEnemy() {
