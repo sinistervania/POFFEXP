@@ -68,10 +68,10 @@
     const CONFIG = {
         frameImage: String(parameters["Frame Image"] || "GaugeFrame"),
         defaultScale: parseFloat(parameters["Default Scale"] || 1.0),
-        barWidth: parseInt(parameters["Bar Width"] || 10),
+        barWidth: parseInt(parameters["Bar Width"] || 15),
         barHeight: parseInt(parameters["Bar Height"] || 120),
-        offsetX: parseInt(parameters["Offset X"] || -280),
-        offsetY: parseInt(parameters["Offset Y"] || -20),
+        offsetX: parseInt(parameters["Offset X"] || -120),
+        offsetY: parseInt(parameters["Offset Y"] || +50),
         outlineSize: parseInt(parameters["Outline Size"] || 2),
         defaultBarColor: String(parameters["Default Bar Color"] || "#f5f5f5"),
     };
@@ -98,7 +98,7 @@
             );
 
             // Rotate the gauge 270 degrees
-            this.rotation = (270 * Math.PI) / 180;
+            this.rotation = (0 * Math.PI) / 180;
             this.update();
         }
 

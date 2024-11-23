@@ -30454,13 +30454,13 @@ var PIXI = (function (exports) {
 	 * @property {boolean} adaptive=false - flag indicating if the resolution should be adaptive
 	 * @property {number} maxLength=10 - maximal length of a single segment of the curve (if adaptive = false, ignored)
 	 * @property {number} minSegments=8 - minimal number of segments in the curve (if adaptive = false, ignored)
-	 * @property {number} maxSegments=2048 - maximal number of segments in the curve (if adaptive = false, ignored)
+	 * @property {number} maxSegments=4096 - maximal number of segments in the curve (if adaptive = false, ignored)
 	 */
 	var GRAPHICS_CURVES = {
 	    adaptive: true,
 	    maxLength: 10,
 	    minSegments: 8,
-	    maxSegments: 2048,
+	    maxSegments: 4096,
 	    _segmentsCount: function _segmentsCount(length, defaultSegments)
 	    {
 	        if ( defaultSegments === void 0 ) { defaultSegments = 20; }
