@@ -1,5 +1,5 @@
 //=============================================================================
-// rmmz_managers.js v1.4.3
+// rmmz_managers.js v1.8.1
 //=============================================================================
 
 //-----------------------------------------------------------------------------
@@ -216,6 +216,10 @@ DataManager.isBattleTest = function() {
 
 DataManager.isEventTest = function() {
     return Utils.isOptionValid("etest");
+};
+
+DataManager.isTitleSkip = function() {
+    return Utils.isOptionValid("tskip");
 };
 
 DataManager.isSkill = function(item) {
@@ -1961,7 +1965,9 @@ SceneManager.determineRepeatNumber = function(deltaTime) {
 };
 
 SceneManager.terminate = function() {
-    window.close();
+    if (Utils.isNwjs()) {
+        nw.App.quit();
+    }
 };
 
 SceneManager.onError = function(event) {
@@ -2800,8 +2806,8 @@ BattleManager.invokeMagicReflection = function(subject, target) {
 
 BattleManager.applySubstitute = function(target) {
     if (this.checkSubstitute(target)) {
-        const substitute = target.friendsUnit().substituteBattler();
-        if (substitute && target !== substitute) {
+        const substitute = target.friendsUnit().substituteBattler(target);
+        if (substitute) {
             this._logWindow.displaySubstitute(substitute, target);
             return substitute;
         }
@@ -2814,12 +2820,18 @@ BattleManager.checkSubstitute = function(target) {
 };
 
 BattleManager.isActionForced = function() {
-    return !!this._actionForcedBattler;
+    return (
+        !!this._actionForcedBattler &&
+        !$gameParty.isAllDead() &&
+        !$gameTroop.isAllDead()
+    );
 };
 
 BattleManager.forceAction = function(battler) {
-    this._actionForcedBattler = battler;
-    this._actionBattlers.remove(battler);
+    if (battler.numActions() > 0) {
+        this._actionForcedBattler = battler;
+        this._actionBattlers.remove(battler);
+    }
 };
 
 BattleManager.processForcedAction = function() {
