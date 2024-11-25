@@ -27,10 +27,10 @@ Scene_Battle.prototype.createSkillWindow = function() {
 
 Scene_Battle.prototype.skillWindowRect = function() {
     // Modify these values to change the skill window position and size
-    const wx = 479;       // x position
-    const wy = 404;       // y position
-    const ww = Graphics.boxWidth - 460;  // width
-    const wh = 140;       // height
+    const wx = 919;       // x position
+    const wy = 821;       // y position
+    const ww = Graphics.boxWidth - 920;  // width
+    const wh = 204;       // height
     return new Rectangle(wx, wy, ww, wh);
 };
 
@@ -42,33 +42,34 @@ Scene_Battle.prototype.createActorCommandWindow = function() {
     commandWindow.setHandler("guard", this.commandGuard.bind(this));
     commandWindow.setHandler("item", this.commandItem.bind(this));
     commandWindow.setHandler("cancel", this.commandCancel.bind(this));
-    commandWindow.padding = 8; // Window padding
+    commandWindow.padding = 10; // Window padding
     this.addWindow(commandWindow);
     this._actorCommandWindow = commandWindow;
 };
 
 Scene_Battle.prototype.actorCommandWindowRect = function() {
     // Modify these values to change the actor command window position and size
-    const wx = 219;       // x position
-    const wy = 404;       // y position
-    const ww = 125;       // width
-    const wh = 140;       // height
+    const wx = 556;       // x position
+    const wy = 821;       // y position
+    const ww = 160;       // width
+    const wh = 206;       // height
     return new Rectangle(wx, wy, ww, wh);
 };
 
 // Override the base Window_Selectable settings
 Window_Selectable.prototype.lineHeight = function() {
-    return 28;
+    return 46;
 };
 
 Window_Selectable.prototype.itemPadding = function() {
-    return 8;
+    return 1;
 };
 
 Window_Selectable.prototype.itemHeight = function() {
     return this.lineHeight();
 };
-
+//This is being overritten by the game engine which is currently 40
 Window_Base.prototype.fontSize = function() {
-    return 16;
+    return 40;
 };
+

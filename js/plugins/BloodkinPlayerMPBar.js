@@ -17,10 +17,10 @@
     const SETTINGS = {
         mp: {
             scale: 1.0,
-            offsetX: -203,
-            offsetY: 260,
-            gaugeWidth: 170,
-            gaugeHeight: 15,
+            offsetX: -320,
+            offsetY: 500,
+            gaugeWidth: 260,
+            gaugeHeight: 24,
             barColor1: '#737373',
             barColor2: '#f5f5f5',
             stateColors: {
@@ -39,10 +39,10 @@
         },
         tp: {
             scale: 1.0,
-            offsetX: +29,
-            offsetY: 260,
-            gaugeWidth: 170,
-            gaugeHeight: 15,
+            offsetX: +80,
+            offsetY: 500,
+            gaugeWidth: 260,
+            gaugeHeight: 24,
             barColor1: '#52d1ff',
             barColor2: '#ffffff',
             backgroundColor: 19,

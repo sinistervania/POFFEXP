@@ -16,10 +16,10 @@
     ];
     
     const memberOffsets = [
-        { x: +1, y: +60 },
-        { x: -22, y: -55 },
-        { x: 178, y: -1 },
-        { x: 378, y: -1 }
+        { x: -25, y: +146 },
+        { x: -410, y: +146 },
+        { x: -610, y: +146 },
+        { x: -810, y: +146 }
     ];
 
 
@@ -818,6 +818,7 @@
         createOverlaySprite(isNegative) {
             const sprite = new Sprite();
             sprite.bitmap = this._overlayBitmaps[isNegative ? 'negative' : 'positive'];
+            sprite.scale.set(1.5, 1.5); // Scale overlay by 1.5
             sprite.y = 0;
             return sprite;
         }
@@ -839,46 +840,35 @@
                 return iconIndex && iconIndex !== 0;
             });
             const icons = states.map(state => state.iconIndex);
-            
-            // Early return if nothing has changed
+        
             if (this._lastIconCount === icons.length &&
                 this._stateIconSprites.length > 0 &&
                 this._stateIconSprites[0]?.iconIndex === icons[0]) {
-                
                 this._stateIconSprites.forEach((sprite, i) => {
                     if (sprite) {
                         const targetX = this.calculateIconX(i);
                         const distance = targetX - sprite.x;
                         sprite.x = Math.round(sprite.x + distance * 0.2);
-                        if (sprite.overlay) {
-                            sprite.overlay.x = sprite.x;
-                        }
-                        if (this._durationSprites[i]) {
-                            this._durationSprites[i].x = sprite.x;
-                        }
+                        if (sprite.overlay) sprite.overlay.x = sprite.x;
+                        if (this._durationSprites[i]) this._durationSprites[i].x = sprite.x;
                     }
                 });
                 return;
             }
         
             this._lastIconCount = icons.length;
-            const iconWidth = ImageManager.iconWidth;
-            const iconHeight = ImageManager.iconHeight;
-            const padding = 2;
+            const iconWidth = ImageManager.iconWidth * 1.5; // Scale by 1.5
+            const iconHeight = ImageManager.iconHeight * 1.5; // Scale by 1.5
+            const padding = 3;
         
-            // Remove excess sprites
             while (this._stateIconSprites.length > icons.length) {
                 const sprite = this._stateIconSprites.pop();
                 if (sprite) {
-                    if (sprite.overlay) {
-                        this.removeChild(sprite.overlay);
-                    }
+                    if (sprite.overlay) this.removeChild(sprite.overlay);
                     this.removeChild(sprite);
                 }
                 const durationSprite = this._durationSprites.pop();
-                if (durationSprite) {
-                    this.removeChild(durationSprite);
-                }
+                if (durationSprite) this.removeChild(durationSprite);
             }
         
             const totalWidth = icons.length * (iconWidth + padding) - padding;
@@ -887,9 +877,11 @@
             states.forEach((state, i) => {
                 const iconIndex = state.iconIndex;
                 let sprite = this._stateIconSprites[i];
-                
+        
                 if (!sprite) {
-                    // Create new sprite
+                    // Add sound effect when a new icon appears
+                    AudioManager.playSe({ name: "sword-scrape", volume: 90, pitch: 50, pan: 0 });
+        
                     sprite = new Sprite();
                     sprite.bitmap = new Bitmap(iconWidth, iconHeight);
                     sprite.x = -Graphics.width;
@@ -899,8 +891,7 @@
                     sprite.stateId = state.id;
                     this.addChild(sprite);
                     this._stateIconSprites[i] = sprite;
-                    
-                    // Create and set up overlay immediately with correct type
+        
                     const isNegative = negativeStates.includes(state.id);
                     const overlay = this.createOverlaySprite(isNegative);
                     overlay.x = sprite.x;
@@ -908,7 +899,6 @@
                     this.addChild(overlay);
                     sprite.overlay = overlay;
         
-                    // Create duration sprite
                     const durationSprite = new Sprite();
                     durationSprite.bitmap = new Bitmap(iconWidth, iconHeight);
                     durationSprite.y = 0;
@@ -916,7 +906,6 @@
                     this._durationSprites[i] = durationSprite;
                 }
         
-                // Update existing sprite if needed
                 if (sprite.iconIndex !== iconIndex || sprite.stateId !== state.id) {
                     sprite.bitmap.clear();
                     const bitmap = ImageManager.loadSystem("IconSet");
@@ -924,15 +913,14 @@
                     const ph = ImageManager.iconHeight;
                     const sx = (iconIndex % 16) * pw;
                     const sy = Math.floor(iconIndex / 16) * ph;
-                    sprite.bitmap.blt(bitmap, sx, sy, pw, ph, 0, 0);
+                    sprite.bitmap.blt(bitmap, sx, sy, pw, ph, 0, 0, iconWidth, iconHeight);
                     sprite.iconIndex = iconIndex;
                     sprite.stateId = state.id;
-                    
-                    // Update overlay type if state changed
+        
                     const isNegative = negativeStates.includes(state.id);
                     const currentType = sprite.overlay.overlayType;
                     const newType = isNegative ? 'negative' : 'positive';
-                    
+        
                     if (currentType !== newType) {
                         sprite.overlay.bitmap = this._overlayBitmaps[newType];
                         sprite.overlay.overlayType = newType;
@@ -940,12 +928,8 @@
         
                     if (sprite.isNew) {
                         sprite.x = -Graphics.width;
-                        if (sprite.overlay) {
-                            sprite.overlay.x = sprite.x;
-                        }
-                        if (this._durationSprites[i]) {
-                            this._durationSprites[i].x = sprite.x;
-                        }
+                        if (sprite.overlay) sprite.overlay.x = sprite.x;
+                        if (this._durationSprites[i]) this._durationSprites[i].x = sprite.x;
                         sprite.isNew = false;
                     }
                 }
@@ -953,28 +937,24 @@
                 const targetX = Math.round(startX + i * (iconWidth + padding));
                 const distance = targetX - sprite.x;
                 sprite.x = Math.round(sprite.x + distance * 0.2);
-                if (sprite.overlay) {
-                    sprite.overlay.x = sprite.x;
-                }
-                if (this._durationSprites[i]) {
-                    this._durationSprites[i].x = sprite.x;
-                }
+                if (sprite.overlay) sprite.overlay.x = sprite.x;
+                if (this._durationSprites[i]) this._durationSprites[i].x = sprite.x;
             });
         }
+        
+
         updateDurations() {
             this._stateIconSprites.forEach((sprite, i) => {
                 if (!sprite || !this._durationSprites[i]) return;
-                
+
                 const durationSprite = this._durationSprites[i];
                 const state = this._battler.states().find(s => s.id === sprite.stateId);
                 if (!state) return;
-        
+
                 const turns = this._battler._stateTurns[state.id];
-                
-                // Clear the duration bitmap first
+
                 durationSprite.bitmap.clear();
-                
-                // Only draw duration if turns exist and the state has a duration set
+
                 if (turns && turns > 0 && state.autoRemovalTiming !== 0) {
                     durationSprite.bitmap.fontSize = 14;
                     durationSprite.bitmap.textColor = '#ffffff';
@@ -984,8 +964,8 @@
                         turns.toString(),
                         0,
                         0,
-                        ImageManager.iconWidth,
-                        ImageManager.iconHeight,
+                        ImageManager.iconWidth * 1.5,
+                        ImageManager.iconHeight * 1.5,
                         'center'
                     );
                 }
@@ -993,12 +973,13 @@
         }
 
         calculateIconX(index) {
-            const iconWidth = ImageManager.iconWidth;
-            const padding = 2;
+            const iconWidth = ImageManager.iconWidth * 1.5;
+            const padding = 3;
             const totalWidth = this._stateIconSprites.length * (iconWidth + padding) - padding;
             const startX = -totalWidth / 2;
             return Math.round(startX + index * (iconWidth + padding));
         }
+    
 
         getScreenX() {
             let x = this.x;
@@ -1065,7 +1046,7 @@
             const rect = new Rectangle(0, 0, 1, 1);
             super.initialize(rect);
             this.opacity = 255;
-            this.contents.fontSize = 14;
+            this.contents.fontSize = 20;
             this.deactivate();
             this.hide();
         }

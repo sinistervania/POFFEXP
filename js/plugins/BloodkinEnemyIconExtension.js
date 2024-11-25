@@ -837,20 +837,23 @@
         this._tooltipUpdateFrame = 0;
     };
 
-    Sprite_Enemy.prototype.updateCustomStateIcons = function() {
+    Sprite_Enemy.prototype.updateCustomStateIcons = function () {
         if (!this._battler) return;
-        
+    
         const states = this._battler.states().filter(state => state && state.iconIndex > 0);
         const icons = states.map(state => state.iconIndex);
         const iconWidth = ImageManager.iconWidth;
         const iconHeight = ImageManager.iconHeight;
-        
+    
         while (this._stateIconSprites.length > icons.length) {
             this.removeChild(this._stateOverlaySprites.pop());
             this.removeChild(this._stateIconSprites.pop());
         }
     
         while (this._stateIconSprites.length < icons.length) {
+            // Play sound effect when a new icon is added
+            AudioManager.playSe({ name: "sword-scrape", volume: 90, pitch: 50, pan: 0 });
+    
             const sprite = new Sprite();
             sprite.animationProgress = 0;
             sprite.isNew = true;
@@ -876,8 +879,7 @@
             const sprite = this._stateIconSprites[i];
             const overlay = this._stateOverlaySprites[i];
             const currentState = states[i];
-            
-            // Update icon sprite if needed
+    
             if (sprite.iconIndex !== iconIndex) {
                 sprite.bitmap = new Bitmap(iconWidth, iconHeight);
                 const bitmap = ImageManager.loadSystem("IconSet");
@@ -889,14 +891,15 @@
                 sprite.iconIndex = iconIndex;
             }
     
-            // Always update overlay based on current state
             const isNegative = enemyNegativeStates.includes(currentState.id);
-            if (!overlay.overlayType || overlay.overlayType !== (isNegative ? 'negative' : 'positive')) {
-                overlay.bitmap = ImageManager.loadBitmap("img/IconOverlay/", 
-                    isNegative ? "BuffNegative2" : "BuffPositive2");
+            if (!overlay.overlayType || overlay.overlayType !== (isNegative ? "negative" : "positive")) {
+                overlay.bitmap = ImageManager.loadBitmap(
+                    "img/IconOverlay/",
+                    isNegative ? "BuffNegative2" : "BuffPositive2"
+                );
                 overlay.scale.x = iconWidth / overlay.bitmap.width;
                 overlay.scale.y = iconHeight / overlay.bitmap.height;
-                overlay.overlayType = isNegative ? 'negative' : 'positive';
+                overlay.overlayType = isNegative ? "negative" : "positive";
             }
     
             if (this._battler.hpBarPosition) {
@@ -928,6 +931,7 @@
             sprite.detectionOffsetY = detectionOffsetY;
         }
     };
+    
 
     Sprite_Enemy.prototype.updateMouseoverTooltip = function() {
         this._tooltipUpdateFrame++;
