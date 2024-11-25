@@ -1,6 +1,13 @@
 (() => {
+    // Debug logging
+    const debug = true;
+    function log(...args) {
+        if (debug) console.log('[BloodkinPhantom]', ...args);
+    }
+
     // Store the original functions
     const _Scene_Battle_onActorOk = Scene_Battle.prototype.onActorOk;
+    const _Window_BattleSkill_processOk = Window_BattleSkill.prototype.processOk;
     const _Window_BattleSkill_processCancel = Window_BattleSkill.prototype.processCancel;
     const _Window_ActorCommand_processCancel = Window_ActorCommand.prototype.processCancel;
     const _BattleManager_startInput = BattleManager.startInput;
@@ -57,65 +64,78 @@
         }
     ];
 
-    // Add turn start hook to remove weapon states
-    BattleManager.startTurn = function() {
-        const actor = $gameParty.members()[0];
-        if (actor) {
-            // Remove all weapon states at start of turn
-            WEAPON_STATES.forEach(stateId => {
-                if (actor.isStateAffected(stateId)) {
-                    actor.removeState(stateId);
+    // New hook into skill selection
+    Window_BattleSkill.prototype.processOk = function() {
+        const skill = this.item();
+        const actor = BattleManager.actor();
+        
+        log('Skill selected:', skill ? skill.id : 'none');
+        
+        if (actor === $gameParty.members()[0] && skill) {
+            const transformation = transformations.find(t => t.skillId === skill.id);
+            if (transformation) {
+                log('Found transformation for skill:', skill.id);
+                
+                // Remove existing states
+                ALL_STATES.forEach(stateId => {
+                    if (actor.isStateAffected(stateId)) {
+                        log(`Removing state ${stateId}`);
+                        actor.removeState(stateId);
+                    }
+                });
+                
+                // Apply new states
+                transformation.stateIds.forEach(stateId => {
+                    log(`Adding state ${stateId}`);
+                    actor.addState(stateId);
+                });
+                
+                // Update history
+                if (!actor._transformationHistory) {
+                    actor._transformationHistory = [];
                 }
-            });
-            // Reset transformation history as well
-            actor._transformationHistory = [];
-            actor._currentActionIndex = 0;
-            // Check base states after removing weapon states
-            checkBaseStates(actor);
+                actor._transformationHistory.push(transformation);
+                actor._currentActionIndex = (actor._currentActionIndex || 0) + 1;
+                
+                log('States after transformation:', 
+                    ALL_STATES.filter(id => actor.isStateAffected(id)));
+            }
         }
-        _BattleManager_startTurn.call(this);
+        
+        _Window_BattleSkill_processOk.call(this);
     };
 
-    // Check and apply base state mappings
     function checkBaseStates(actor) {
         if (isProcessingBaseStates || !actor) return;
         
         isProcessingBaseStates = true;
+        log('Checking base states');
         
-        // Only proceed if no weapon states are active
         const hasWeaponState = WEAPON_STATES.some(stateId => actor.isStateAffected(stateId));
         if (!hasWeaponState) {
-            // Check each base state and apply corresponding paired state
-            for (const [baseStateId, pairedStateId] of Object.entries(BASE_STATE_MAPPING)) {
-                if (actor.isStateAffected(Number(baseStateId))) {
+            Object.entries(BASE_STATE_MAPPING).forEach(([baseStateId, pairedStateId]) => {
+                baseStateId = Number(baseStateId);
+                if (actor.isStateAffected(baseStateId)) {
                     if (!actor.isStateAffected(pairedStateId)) {
+                        log(`Adding paired state ${pairedStateId} for base state ${baseStateId}`);
                         actor.addState(pairedStateId);
                     }
                 } else if (actor.isStateAffected(pairedStateId)) {
+                    log(`Removing paired state ${pairedStateId}`);
                     actor.removeState(pairedStateId);
                 }
-            }
+            });
         }
         
         isProcessingBaseStates = false;
     }
 
-    // Initialize on battle start
-    BattleManager.startInput = function() {
-        const actor = $gameParty.members()[0];
-        if (actor) {
-            actor._transformationHistory = [];
-            actor._currentActionIndex = 0;
-            checkBaseStates(actor);
-        }
-        return _BattleManager_startInput.call(this);
-    };
-
-    // Handler for any cancellation
+    // Handle cancellation
     function handleCancel() {
         const actor = $gameParty.members()[0];
-        if (actor && actor._transformationHistory.length > 0) {
-            // Remove the last transformation's states
+        if (actor && actor._transformationHistory && actor._transformationHistory.length > 0) {
+            log('Processing cancel');
+            
             const lastTransformation = actor._transformationHistory.pop();
             if (lastTransformation) {
                 lastTransformation.stateIds.forEach(stateId => {
@@ -123,7 +143,6 @@
                 });
             }
 
-            // Reapply the previous transformation if it exists
             const previousTransformation = actor._transformationHistory[actor._transformationHistory.length - 1];
             if (previousTransformation) {
                 previousTransformation.stateIds.forEach(stateId => {
@@ -131,51 +150,48 @@
                 });
             }
             
-            actor._currentActionIndex--;
+            actor._currentActionIndex = Math.max(0, (actor._currentActionIndex || 1) - 1);
             checkBaseStates(actor);
         }
     }
 
-    // Hook into cancel handlers where necessary
+    // Turn start handling
+    BattleManager.startTurn = function() {
+        const actor = $gameParty.members()[0];
+        if (actor) {
+            log('Start turn - clearing weapon states');
+            WEAPON_STATES.forEach(stateId => {
+                if (actor.isStateAffected(stateId)) {
+                    actor.removeState(stateId);
+                }
+            });
+            actor._transformationHistory = [];
+            actor._currentActionIndex = 0;
+            checkBaseStates(actor);
+        }
+        _BattleManager_startTurn.call(this);
+    };
 
+    // Cancel handlers
     Window_ActorCommand.prototype.processCancel = function() {
         handleCancel();
         _Window_ActorCommand_processCancel.call(this);
     };
 
-    // Apply transformation when action is confirmed
-    Scene_Battle.prototype.onActorOk = function() {
-        const actor = BattleManager.actor();
-        if (actor === $gameParty.members()[0]) {
-            const skillWindow = SceneManager._scene._skillWindow;
-            if (skillWindow && skillWindow.item()) {
-                const skill = skillWindow.item();
-                const skillId = skill.id;
-                const transformation = transformations.find(t => t.skillId === skillId);
-                if (transformation) {
-                    // First, remove all transformation states
-                    ALL_STATES.forEach(stateId => {
-                        if (actor.isStateAffected(stateId)) {
-                            actor.removeState(stateId);
-                        }
-                    });
-                    
-                    // Then apply the new transformation states
-                    transformation.stateIds.forEach(stateId => {
-                        actor.addState(stateId);
-                    });
-                    
-                    // Store the transformation in history
-                    actor._transformationHistory.push(transformation);
-                    actor._currentActionIndex++;
-                }
+    // Battle start initialization
+    BattleManager.startInput = function() {
+        const actor = $gameParty.members()[0];
+        if (actor) {
+            if (!actor._transformationHistory) {
+                actor._transformationHistory = [];
             }
+            actor._currentActionIndex = 0;
+            checkBaseStates(actor);
         }
-        
-        _Scene_Battle_onActorOk.call(this);
+        return _BattleManager_startInput.call(this);
     };
 
-    // Add a check for base states after state changes
+    // State change hooks
     const _Game_Battler_addState = Game_Battler.prototype.addState;
     Game_Battler.prototype.addState = function(stateId) {
         _Game_Battler_addState.call(this, stateId);
