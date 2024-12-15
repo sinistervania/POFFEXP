@@ -168,46 +168,52 @@
             this._enemy = enemy;
             this._mpGaugeWidth = mpGaugeWidth;
             this._mpGaugeHeight = mpGaugeHeight;
-            this._mpGaugeScale = this._enemy.enemy().meta.MpGaugeScale || defaultScale;
-            this._mpGaugeOffsetX = this._enemy.enemy().meta.MpGaugeOffsetX || defaultOffsetX;
-            this._mpGaugeOffsetY = this._enemy.enemy().meta.MpGaugeOffsetY || defaultOffsetY;
+            this._mpGaugeScale = Number(this._enemy.enemy().meta.MpGaugeScale) || defaultScale;
+            this._mpGaugeOffsetX = Number(this._enemy.enemy().meta.MpGaugeOffsetX) || defaultOffsetX;
+            this._mpGaugeOffsetY = Number(this._enemy.enemy().meta.MpGaugeOffsetY) || defaultOffsetY;
             this._shakeDuration = 0;
-            this._previousMp = this._enemy.mp; 
-            this._ghostMp = this._enemy.mp; 
+            this._previousMp = this._enemy.mp;
+            this._ghostMp = this._enemy.mp;
             this._breathingStartFrame = 0;
+            this._baseX = 0;
+            this._baseY = 0;
             this._barColor1 = ColorManager.textColor(barColor1Index);
             this._barColor2 = ColorManager.textColor(barColor2Index);
-            this.createBitmap();
-            this.createFrameSprite();
+            this.anchor.x = 0.5;
+            this.anchor.y = 0.5;
+            this._createBitmap();
+            this._createFrameSprite();
         }
 
-        createBitmap() {
+        _createBitmap() {
             this.bitmap = new Bitmap(this._mpGaugeWidth + outlineSize * 2, this._mpGaugeHeight + outlineSize * 2);
-            this.update();
         }
 
-        createFrameSprite() {
+        _createFrameSprite() {
             this._frameSprite = new Sprite();
             this._frameSprite.bitmap = ImageManager.loadPicture(frameImage);
-            this._frameSprite.x = -outlineSize;
-            this._frameSprite.y = -outlineSize;
-            this._frameSprite.scale.x = (this._mpGaugeWidth + outlineSize * 2) / this._frameSprite.bitmap.width;
-            this._frameSprite.scale.y = (this._mpGaugeHeight + outlineSize * 2) / this._frameSprite.bitmap.height;
+            this._frameSprite.anchor.x = 0.5;
+            this._frameSprite.anchor.y = 0.5;
             this.addChild(this._frameSprite);
+            
+            this._frameSprite.bitmap.addLoadListener(() => {
+                this._frameSprite.scale.x = (this._mpGaugeWidth + outlineSize * 2) / this._frameSprite.bitmap.width;
+                this._frameSprite.scale.y = (this._mpGaugeHeight + outlineSize * 2) / this._frameSprite.bitmap.height;
+            });
         }
 
-        update() {
-            super.update();
-            this.updateVisibility(); // Check if the MP gauge should be visible
-            if (this.visible) { // Only update if visible
-                this.checkMpChange(); 
-                this.updateShake(); 
-                this.updateGhostMp(); 
-                this.updatePosition();
-                this.redraw();
-                this.updateFrameSprite(); 
-                this.syncWithBreathing(); 
-                this.updateFullMpColor(); // Update the color if MP is full
+        updatePosition() {
+            if (!this._enemy) return;
+            
+            const spriteHeight = this._enemy.spriteHeight ? this._enemy.spriteHeight() : 
+                               (this._enemy.bitmap ? this._enemy.bitmap.height : 64);
+            
+            this._baseX = this._enemy.screenX();
+            this._baseY = this._enemy.screenY() - spriteHeight + this._mpGaugeOffsetY;
+
+            if (this._shakeDuration <= 0) {
+                this.x = this._baseX;
+                this.y = this._baseY;
             }
         }
 
@@ -217,10 +223,10 @@
 
         checkMpChange() {
             if (this._enemy.mp < this._previousMp) {
-                this._shakeDuration = shakeDuration; 
-                this._ghostMp = this._previousMp; 
+                this._shakeDuration = shakeDuration;
+                this._ghostMp = this._previousMp;
             }
-            this._previousMp = this._enemy.mp; 
+            this._previousMp = this._enemy.mp;
         }
 
         updateShake() {
@@ -242,38 +248,16 @@
             }
         }
 
-        updateFrameSprite() {
-            if (this._frameSprite) {
-                this._frameSprite.scale.x = (this._mpGaugeWidth + outlineSize * 2) / this._frameSprite.bitmap.width;
-                this._frameSprite.scale.y = (this._mpGaugeHeight + outlineSize * 2) / this._frameSprite.bitmap.height;
-            }
-        }
-
-        updatePosition() {
-            const spriteHeight = this._enemy.spriteHeight ? this._enemy.spriteHeight() : (this._enemy.bitmap ? this._enemy.bitmap.height : 64);
-            const gaugeXOffset = this._mpGaugeOffsetX - this._mpGaugeWidth / 2;
-            const gaugeYOffset = this._mpGaugeOffsetY - spriteHeight;
-            const scale = this.scale.x;
-            const adjustedYOffset = gaugeYOffset * scale;
-
-            if (this._shakeDuration <= 0) {
-                this.x = this._enemy.screenX() + gaugeXOffset - outlineSize;
-                this.y = this._enemy.screenY() - spriteHeight + adjustedYOffset - outlineSize;
-            }
-            this.scale.set(this._mpGaugeScale, this._mpGaugeScale);
-        }
-
         syncWithBreathing() {
             const hoveredEnemy = this.getHoveredEnemy();
+            let currentScale = this._mpGaugeScale;
+
             if (this._enemy === hoveredEnemy) {
-                const scale = 1 + (Math.sin((Graphics.frameCount - this._breathingStartFrame) / breathingSpeed) * (breathingScaleFactor - 1));
-                this.scale.set(scale * this._mpGaugeScale, scale * this._mpGaugeScale);
-                this.updatePosition();
-            } else {
-                this.scale.set(this._mpGaugeScale, this._mpGaugeScale);
-                this._breathingStartFrame = Graphics.frameCount;
-                this.updatePosition();
+                const breathingEffect = Math.sin((Graphics.frameCount - this._breathingStartFrame) / breathingSpeed) * (breathingScaleFactor - 1);
+                currentScale = this._mpGaugeScale * (1 + breathingEffect);
             }
+
+            this.scale.set(currentScale, currentScale);
         }
 
         updateFullMpColor() {
@@ -308,6 +292,21 @@
             }
             return null;
         }
+
+        update() {
+            super.update();
+            this.updateVisibility();
+            
+            if (this.visible) {
+                this.checkMpChange();
+                this.updateShake();
+                this.updateGhostMp();
+                this.updatePosition();
+                this.syncWithBreathing();
+                this.updateFullMpColor();
+                this.redraw();
+            }
+        }
     }
 
     const _Spriteset_Battle_createEnemies = Spriteset_Battle.prototype.createEnemies;
@@ -331,12 +330,12 @@
 
     Scene_Battle.prototype.updateEnemyMpGaugeHover = function() {
         const hoveredEnemy = this._enemyWindow && this._enemyWindow.active ? this._enemyWindow.enemy() : null;
-        this._spriteset._enemyMpGauges.forEach(mpGauge => {
-            if (mpGauge._enemy !== hoveredEnemy) {
-                mpGauge.scale.set(mpGauge._mpGaugeScale, mpGauge._mpGaugeScale);
-                mpGauge._breathingStartFrame = Graphics.frameCount;
-                mpGauge.updatePosition();
-            }
-        });
+        if (this._spriteset && this._spriteset._enemyMpGauges) {
+            this._spriteset._enemyMpGauges.forEach(mpGauge => {
+                if (mpGauge._enemy !== hoveredEnemy) {
+                    mpGauge._breathingStartFrame = Graphics.frameCount;
+                }
+            });
+        }
     };
 })();

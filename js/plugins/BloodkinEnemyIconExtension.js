@@ -1,7 +1,7 @@
 /*:
  * @target MZ
  * @plugindesc Displays all state icons above enemies' HP bars side by side, growing to the right, with the oldest icon on the left and the newest icon on the right. Tooltip descriptions are displayed when hovering over icons.
- * @author Bloodkin
+ * @author Bloodkin (Modified)
  * 
  * @param Default Icon Offset X
  * @text Default Icon Offset X
@@ -19,6 +19,24 @@
  * @desc The default vertical offset for the state icons relative to the HP bar. Default: -32
  * @default -32
  * 
+ * @param Icon Scale X
+ * @text Icon Scale X
+ * @type number
+ * @decimals 2
+ * @min 0.1
+ * @max 5.0
+ * @desc The horizontal scale of the icons. 1.0 is normal size. Default: 1.0
+ * @default 1.0
+ * 
+ * @param Icon Scale Y
+ * @text Icon Scale Y
+ * @type number
+ * @decimals 2
+ * @min 0.1
+ * @max 5.0
+ * @desc The vertical scale of the icons. 1.0 is normal size. Default: 1.0
+ * @default 1.0
+ *
  * @param Tooltip Update Interval
  * @text Tooltip Update Interval
  * @type number
@@ -28,21 +46,28 @@
  * @default 10
  * 
  * @help
- * This plugin displays all state icons above enemies' HP bars side by side, growing to the right, with the oldest icon on the left and the newest icon on the right. Tooltip descriptions are displayed when hovering over icons.
+ * This plugin displays all state icons above enemies' HP bars side by side.
  * 
- * You can customize the descriptions of each state directly within the plugin script.
+ * New Features:
+ * - Added icon scaling parameters to control icon size
+ * - Scale can be set between 0.1x and 5.0x the original size
+ * - Separate X and Y scaling for more control
  * 
  * Note Tags:
- * <IconOffsetX: x> - Offset the icons horizontally by x pixels.
- * <IconOffsetY: y> - Offset the icons vertically by y pixels.
- * <DetectionOffsetX: x> - Offset the detection area horizontally by x pixels.
- * <DetectionOffsetY: y> - Offset the detection area vertically by y pixels.
+ * <IconOffsetX: x> - Offset the icons horizontally by x pixels
+ * <IconOffsetY: y> - Offset the icons vertically by y pixels
+ * <DetectionOffsetX: x> - Offset the detection area horizontally by x pixels
+ * <DetectionOffsetY: y> - Offset the detection area vertically by y pixels
+ * <IconScaleX: x> - Set horizontal scale for this specific enemy's icons
+ * <IconScaleY: y> - Set vertical scale for this specific enemy's icons
  */
 
 (() => {
     const parameters = PluginManager.parameters('BloodkinEnemyIconExtension');
     const defaultIconOffsetX = Number(parameters['Default Icon Offset X'] || 0);
     const defaultIconOffsetY = Number(parameters['Default Icon Offset Y'] || -32);
+    const defaultIconScaleX = Number(parameters['Icon Scale X'] || 1.5);
+    const defaultIconScaleY = Number(parameters['Icon Scale Y'] || 1.5);
     const tooltipUpdateInterval = Number(parameters['Tooltip Update Interval'] || 10);
 
     const enemyNegativeStates = [
@@ -837,7 +862,8 @@
         this._tooltipUpdateFrame = 0;
     };
 
-    Sprite_Enemy.prototype.updateCustomStateIcons = function () {
+    const _Sprite_Enemy_updateCustomStateIcons = Sprite_Enemy.prototype.updateCustomStateIcons;
+    Sprite_Enemy.prototype.updateCustomStateIcons = function() {
         if (!this._battler) return;
     
         const states = this._battler.states().filter(state => state && state.iconIndex > 0);
@@ -845,16 +871,21 @@
         const iconWidth = ImageManager.iconWidth;
         const iconHeight = ImageManager.iconHeight;
     
+        // Get custom scale values from enemy notes or use defaults
+        const customScaleX = this._battler.enemy().meta.IconScaleX ? Number(this._battler.enemy().meta.IconScaleX) : defaultIconScaleX;
+        const customScaleY = this._battler.enemy().meta.IconScaleY ? Number(this._battler.enemy().meta.IconScaleY) : defaultIconScaleY;
+    
         while (this._stateIconSprites.length > icons.length) {
             this.removeChild(this._stateOverlaySprites.pop());
             this.removeChild(this._stateIconSprites.pop());
         }
     
         while (this._stateIconSprites.length < icons.length) {
-            // Play sound effect when a new icon is added
             AudioManager.playSe({ name: "sword-scrape", volume: 90, pitch: 50, pan: 0 });
     
             const sprite = new Sprite();
+            sprite.scale.x = customScaleX;
+            sprite.scale.y = customScaleY;
             sprite.animationProgress = 0;
             sprite.isNew = true;
             sprite.targetX = 0;
@@ -862,9 +893,15 @@
             this._stateIconSprites.push(sprite);
     
             const overlay = new Sprite();
+            overlay.scale.x = customScaleX;
+            overlay.scale.y = customScaleY;
             overlay.animationProgress = 0;
             overlay.isNew = true;
             overlay.targetX = 0;
+            overlay.bitmap = ImageManager.loadBitmap(
+                "img/IconOverlay/",
+                "BuffPositive2"
+            );
             this.addChild(overlay);
             this._stateOverlaySprites.push(overlay);
         }
@@ -891,26 +928,34 @@
                 sprite.iconIndex = iconIndex;
             }
     
+            // Update sprite scales
+            sprite.scale.x = customScaleX;
+            sprite.scale.y = customScaleY;
+    
             const isNegative = enemyNegativeStates.includes(currentState.id);
             if (!overlay.overlayType || overlay.overlayType !== (isNegative ? "negative" : "positive")) {
                 overlay.bitmap = ImageManager.loadBitmap(
                     "img/IconOverlay/",
                     isNegative ? "BuffNegative2" : "BuffPositive2"
                 );
-                overlay.scale.x = iconWidth / overlay.bitmap.width;
-                overlay.scale.y = iconHeight / overlay.bitmap.height;
                 overlay.overlayType = isNegative ? "negative" : "positive";
+            }
+            
+            // Update overlay scales once bitmap is loaded
+            if (overlay.bitmap && overlay.bitmap.isReady()) {
+                overlay.scale.x = customScaleX * (iconWidth / overlay.bitmap.width);
+                overlay.scale.y = customScaleY * (iconHeight / overlay.bitmap.height);
             }
     
             if (this._battler.hpBarPosition) {
                 const hpBarPosition = this._battler.hpBarPosition();
-                sprite.targetX = hpBarPosition.x + customOffsetX + i * iconWidth;
+                sprite.targetX = hpBarPosition.x + customOffsetX + (i * iconWidth * customScaleX);
                 sprite.y = hpBarPosition.y + customOffsetY;
                 overlay.targetX = sprite.targetX;
                 overlay.y = sprite.y;
             } else {
-                sprite.targetX = customOffsetX + i * iconWidth;
-                sprite.y = -this.bitmap.height - iconHeight + customOffsetY;
+                sprite.targetX = customOffsetX + (i * iconWidth * customScaleX);
+                sprite.y = -this.bitmap.height - (iconHeight * customScaleY) + customOffsetY;
                 overlay.targetX = sprite.targetX;
                 overlay.y = sprite.y;
             }
@@ -931,8 +976,8 @@
             sprite.detectionOffsetY = detectionOffsetY;
         }
     };
-    
 
+    // Modified tooltip detection to account for scaling
     Sprite_Enemy.prototype.updateMouseoverTooltip = function() {
         this._tooltipUpdateFrame++;
         if (this._tooltipUpdateFrame < tooltipUpdateInterval) return;
@@ -948,19 +993,22 @@
         let tooltipShown = false;
 
         for (const sprite of this._stateIconSprites) {
-            if (
-                sprite &&
-                sprite.stateId !== null &&
-                mouseX >= sprite.x + this.x + sprite.detectionOffsetX &&
-                mouseX <= sprite.x + this.x + sprite.detectionOffsetX + sprite.bitmap.width &&
-                mouseY >= sprite.y + this.y + sprite.detectionOffsetY &&
-                mouseY <= sprite.y + this.y + sprite.detectionOffsetY + sprite.bitmap.height
-            ) {
-                const stateId = sprite.stateId;
-                const description = stateDescriptions[stateId] || "No description available.";
-                this._battler.tooltipWindow.showTooltip(description, mouseX, mouseY);
-                tooltipShown = true;
-                break;
+            if (sprite && sprite.stateId !== null && sprite.bitmap) {
+                const scaledWidth = sprite.bitmap.width * sprite.scale.x;
+                const scaledHeight = sprite.bitmap.height * sprite.scale.y;
+                
+                if (
+                    mouseX >= sprite.x + this.x + sprite.detectionOffsetX &&
+                    mouseX <= sprite.x + this.x + sprite.detectionOffsetX + scaledWidth &&
+                    mouseY >= sprite.y + this.y + sprite.detectionOffsetY &&
+                    mouseY <= sprite.y + this.y + sprite.detectionOffsetY + scaledHeight
+                ) {
+                    const stateId = sprite.stateId;
+                    const description = stateDescriptions[stateId] || "No description available.";
+                    this._battler.tooltipWindow.showTooltip(description, mouseX, mouseY);
+                    tooltipShown = true;
+                    break;
+                }
             }
         }
 

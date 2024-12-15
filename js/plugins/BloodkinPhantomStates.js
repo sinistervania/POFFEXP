@@ -12,6 +12,7 @@
     const _Window_ActorCommand_processCancel = Window_ActorCommand.prototype.processCancel;
     const _BattleManager_startInput = BattleManager.startInput;
     const _BattleManager_startTurn = BattleManager.startTurn;
+    const _Scene_Battle_onActorCancel = Scene_Battle.prototype.onActorCancel;
     
     // Weapon state IDs that need to be managed
     const WEAPON_STATES = [764, 765, 766, 767, 768, 769];
@@ -29,6 +30,7 @@
     };
 
     let isProcessingBaseStates = false;
+    let lastSelectedPhantomSkill = null;
 
     // Transformation configurations
     const transformations = [
@@ -75,6 +77,7 @@
             const transformation = transformations.find(t => t.skillId === skill.id);
             if (transformation) {
                 log('Found transformation for skill:', skill.id);
+                lastSelectedPhantomSkill = transformation;
                 
                 // Remove existing states
                 ALL_STATES.forEach(stateId => {
@@ -90,12 +93,10 @@
                     actor.addState(stateId);
                 });
                 
-                // Update history
+                // Update history - don't push to history yet, wait for target confirmation
                 if (!actor._transformationHistory) {
                     actor._transformationHistory = [];
                 }
-                actor._transformationHistory.push(transformation);
-                actor._currentActionIndex = (actor._currentActionIndex || 0) + 1;
                 
                 log('States after transformation:', 
                     ALL_STATES.filter(id => actor.isStateAffected(id)));
@@ -103,6 +104,51 @@
         }
         
         _Window_BattleSkill_processOk.call(this);
+    };
+
+    // Add hook for actor targeting cancel
+    Scene_Battle.prototype.onActorCancel = function() {
+        const actor = $gameParty.members()[0];
+        if (lastSelectedPhantomSkill && actor) {
+            log('Canceling target selection for phantom skill');
+            
+            // Remove the current phantom states
+            ALL_STATES.forEach(stateId => {
+                if (actor.isStateAffected(stateId)) {
+                    log(`Removing state ${stateId}`);
+                    actor.removeState(stateId);
+                }
+            });
+            
+            // Restore previous transformation if it exists
+            if (actor._transformationHistory && actor._transformationHistory.length > 0) {
+                const previousTransformation = actor._transformationHistory[actor._transformationHistory.length - 1];
+                log('Restoring previous transformation:', previousTransformation);
+                
+                previousTransformation.stateIds.forEach(stateId => {
+                    log(`Restoring state ${stateId}`);
+                    actor.addState(stateId);
+                });
+            }
+            
+            lastSelectedPhantomSkill = null;
+            checkBaseStates(actor);
+        }
+        
+        _Scene_Battle_onActorCancel.call(this);
+    };
+
+    // Add hook for actor targeting confirmation
+    Scene_Battle.prototype.onActorOk = function() {
+        const actor = BattleManager.actor();
+        if (lastSelectedPhantomSkill && actor === $gameParty.members()[0]) {
+            log('Confirming target selection for phantom skill');
+            // Now we can safely add to the transformation history
+            actor._transformationHistory.push(lastSelectedPhantomSkill);
+            actor._currentActionIndex = (actor._currentActionIndex || 0) + 1;
+        }
+        
+        _Scene_Battle_onActorOk.call(this);
     };
 
     function checkBaseStates(actor) {

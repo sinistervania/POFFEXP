@@ -28,7 +28,7 @@ Scene_Battle.prototype.createSkillWindow = function() {
 Scene_Battle.prototype.skillWindowRect = function() {
     // Modify these values to change the skill window position and size
     const wx = 919;       // x position
-    const wy = 821;       // y position
+    const wy = 836;       // y position
     const ww = Graphics.boxWidth - 920;  // width
     const wh = 204;       // height
     return new Rectangle(wx, wy, ww, wh);
@@ -50,7 +50,7 @@ Scene_Battle.prototype.createActorCommandWindow = function() {
 Scene_Battle.prototype.actorCommandWindowRect = function() {
     // Modify these values to change the actor command window position and size
     const wx = 556;       // x position
-    const wy = 821;       // y position
+    const wy = 836;       // y position
     const ww = 160;       // width
     const wh = 206;       // height
     return new Rectangle(wx, wy, ww, wh);

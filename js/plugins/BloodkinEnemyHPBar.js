@@ -117,7 +117,7 @@
 (() => {
     const parameters = PluginManager.parameters('BloodkinEnemyHPBar');
     const defaultScale = parseFloat(parameters['Default Scale'] || 1.0);
-    const defaultOffsetX = parseInt(parameters['Default Offset X'] || 0);
+    const defaultOffsetX = parseInt(parameters['Default Offset X'] || 1.0);
     const defaultOffsetY = parseInt(parameters['Default Offset Y'] || 40);
     const barColor1Index = parseInt(parameters['Bar Color 1'] || 20);
     const barColor2Index = parseInt(parameters['Bar Color 2'] || 21);
@@ -135,45 +135,52 @@
         constructor(enemy) {
             super();
             this._enemy = enemy;
-            this._hpGaugeWidth = 150; // Set the width of the HP gauge
-            this._hpGaugeHeight = 10; // Set the height of the HP gauge
-            this._hpGaugeScale = this._enemy.enemy().meta.HpGaugeScale || defaultScale;
-            this._hpGaugeOffsetX = this._enemy.enemy().meta.HpGaugeOffsetX || defaultOffsetX;
-            this._hpGaugeOffsetY = this._enemy.enemy().meta.HpGaugeOffsetY || defaultOffsetY;
+            this._hpGaugeWidth = 150;
+            this._hpGaugeHeight = 10;
+            this._hpGaugeScale = Number(this._enemy.enemy().meta.HpGaugeScale) || defaultScale;
+            this._hpGaugeOffsetX = Number(this._enemy.enemy().meta.HpGaugeOffsetX) || defaultOffsetX;
+            this._hpGaugeOffsetY = Number(this._enemy.enemy().meta.HpGaugeOffsetY) || defaultOffsetY;
             this._shakeDuration = 0;
-            this._previousHp = this._enemy.hp; // Store the initial HP
-            this._ghostHp = this._enemy.hp; // Initialize ghost HP
+            this._previousHp = this._enemy.hp;
+            this._ghostHp = this._enemy.hp;
             this._breathingStartFrame = 0;
-            this.createBitmap();
-            this.createFrameSprite();
+            this._baseX = 0;
+            this._baseY = 0;
+            this.anchor.x = 0.5;
+            this.anchor.y = 0.5;
+            this._createBitmap();
+            this._createFrameSprite();
         }
 
-        createBitmap() {
+        _createBitmap() {
             this.bitmap = new Bitmap(this._hpGaugeWidth + outlineSize * 2, this._hpGaugeHeight + outlineSize * 2);
-            this.update();
         }
 
-        createFrameSprite() {
+        _createFrameSprite() {
             this._frameSprite = new Sprite();
             this._frameSprite.bitmap = ImageManager.loadPicture(frameImage);
-            this._frameSprite.x = -outlineSize;
-            this._frameSprite.y = -outlineSize;
-            this._frameSprite.scale.x = (this._hpGaugeWidth + outlineSize * 2) / this._frameSprite.bitmap.width;
-            this._frameSprite.scale.y = (this._hpGaugeHeight + outlineSize * 2) / this._frameSprite.bitmap.height;
+            this._frameSprite.anchor.x = 0.5;
+            this._frameSprite.anchor.y = 0.5;
             this.addChild(this._frameSprite);
+            
+            this._frameSprite.bitmap.addLoadListener(() => {
+                this._frameSprite.scale.x = (this._hpGaugeWidth + outlineSize * 2) / this._frameSprite.bitmap.width;
+                this._frameSprite.scale.y = (this._hpGaugeHeight + outlineSize * 2) / this._frameSprite.bitmap.height;
+            });
         }
 
-        update() {
-            super.update();
-            this.updateVisibility(); // Check if the HP gauge should be visible
-            if (this.visible) { // Only update if visible
-                this.checkHpChange(); // Check if HP has changed
-                this.updateShake(); // Apply shake effect
-                this.updateGhostHp(); // Update ghost HP gauge
-                this.updatePosition();
-                this.redraw();
-                this.updateFrameSprite(); // Ensure the frame stays aligned with the gauge
-                this.syncWithBreathing(); // Sync HP bar with breathing
+        updatePosition() {
+            if (!this._enemy) return;
+            
+            const spriteHeight = this._enemy.spriteHeight ? this._enemy.spriteHeight() : 
+                               (this._enemy.bitmap ? this._enemy.bitmap.height : 64);
+            
+            this._baseX = this._enemy.screenX();
+            this._baseY = this._enemy.screenY() - spriteHeight + this._hpGaugeOffsetY;
+
+            if (this._shakeDuration <= 0) {
+                this.x = this._baseX;
+                this.y = this._baseY;
             }
         }
 
@@ -183,10 +190,10 @@
 
         checkHpChange() {
             if (this._enemy.hp < this._previousHp) {
-                this._shakeDuration = shakeDuration; // Trigger shake when HP decreases
-                this._ghostHp = this._previousHp; // Set ghost HP to the previous HP
+                this._shakeDuration = shakeDuration;
+                this._ghostHp = this._previousHp;
             }
-            this._previousHp = this._enemy.hp; // Update the previous HP
+            this._previousHp = this._enemy.hp;
         }
 
         updateShake() {
@@ -195,7 +202,6 @@
                 this.y += Math.random() * shakeIntensity - shakeIntensity / 2;
                 this._shakeDuration--;
             } else {
-                // Reset position after shaking
                 this.updatePosition();
             }
         }
@@ -209,38 +215,38 @@
             }
         }
 
-        updateFrameSprite() {
-            if (this._frameSprite) {
-                this._frameSprite.scale.x = (this._hpGaugeWidth + outlineSize * 2) / this._frameSprite.bitmap.width;
-                this._frameSprite.scale.y = (this._hpGaugeHeight + outlineSize * 2) / this._frameSprite.bitmap.height;
-            }
-        }
-
-        updatePosition() {
-            const spriteHeight = this._enemy.spriteHeight ? this._enemy.spriteHeight() : (this._enemy.bitmap ? this._enemy.bitmap.height : 64); // Safely get height
-            const gaugeXOffset = this._hpGaugeOffsetX - this._hpGaugeWidth / 2;
-            const gaugeYOffset = this._hpGaugeOffsetY - spriteHeight; // Position the gauge above the enemy's head
-
-            const scale = this.scale.x; // Get the current scale
-            const adjustedYOffset = gaugeYOffset * scale; // Adjust Y offset based on scale
-
-            if (this._shakeDuration <= 0) {
-                this.x = this._enemy.screenX() + gaugeXOffset - outlineSize;
-                this.y = this._enemy.screenY() - spriteHeight + adjustedYOffset - outlineSize;
-            }
-            this.scale.set(this._hpGaugeScale, this._hpGaugeScale);
-        }
-
         syncWithBreathing() {
             const hoveredEnemy = this.getHoveredEnemy();
+            let currentScale = this._hpGaugeScale;
+
             if (this._enemy === hoveredEnemy) {
-                const scale = 1 + (Math.sin((Graphics.frameCount - this._breathingStartFrame) / breathingSpeed) * (breathingScaleFactor - 1));
-                this.scale.set(scale * this._hpGaugeScale, scale * this._hpGaugeScale);
-                this.updatePosition(); // Update position to sync with scale changes
-            } else {
-                this.scale.set(this._hpGaugeScale, this._hpGaugeScale); // Reset scale if not hovered
-                this._breathingStartFrame = Graphics.frameCount; // Reset animation start frame
-                this.updatePosition(); // Reset position when not hovered
+                const breathingEffect = Math.sin((Graphics.frameCount - this._breathingStartFrame) / breathingSpeed) * (breathingScaleFactor - 1);
+                currentScale = this._hpGaugeScale * (1 + breathingEffect);
+            }
+
+            this.scale.set(currentScale, currentScale);
+        }
+
+        getHoveredEnemy() {
+            const enemyWindow = SceneManager._scene._enemyWindow;
+            if (enemyWindow && enemyWindow.active) {
+                return enemyWindow.enemy();
+            }
+            return null;
+        }
+
+        drawHPIncrementMarkers() {
+            const totalIncrements = Math.floor(this._enemy.mhp / 100);
+            const markerWidth = 2;
+            const markerHeight = this._hpGaugeHeight + outlineSize * 2;
+            
+            for (let i = 1; i <= totalIncrements; i++) {
+                const hpRatio = (i * 100) / this._enemy.mhp;
+                if (hpRatio < 1) {
+                    const xPos = Math.floor(outlineSize + this._hpGaugeWidth * hpRatio - markerWidth / 2);
+                    this.bitmap.fillRect(xPos - 1, 0, markerWidth + 1, markerHeight, '#000000');
+                    this.bitmap.fillRect(xPos, 1, markerWidth, markerHeight - 2, '#e1cb89');
+                }
             }
         }
 
@@ -253,45 +259,25 @@
             const backgroundColor = ColorManager.textColor(backgroundColorIndex);
             const ghostColor = ColorManager.textColor(ghostBarColorIndex);
 
-            // Draw the HP bar outline
             this.bitmap.fillRect(0, 0, this._hpGaugeWidth + outlineSize * 2, this._hpGaugeHeight + outlineSize * 2, '#000000');
-
-            // Draw the HP bar background
             this.bitmap.fillRect(outlineSize, outlineSize, this._hpGaugeWidth, this._hpGaugeHeight, backgroundColor);
-
-            // Draw the ghost HP bar
             this.bitmap.fillRect(outlineSize, outlineSize, this._hpGaugeWidth * ghostHpRate, this._hpGaugeHeight, ghostColor);
-
-            // Draw the HP bar foreground
             this.bitmap.gradientFillRect(outlineSize, outlineSize, this._hpGaugeWidth * hpRate, this._hpGaugeHeight, color1, color2);
-
-            // Draw markers for every 100 HP
             this.drawHPIncrementMarkers();
         }
 
-        drawHPIncrementMarkers() {
-            const totalIncrements = Math.floor(this._enemy.mhp / 100);
-            const markerWidth = 2;
-            const markerHeight = this._hpGaugeHeight + outlineSize * 2;
+        update() {
+            super.update();
+            this.updateVisibility();
             
-            for (let i = 1; i <= totalIncrements; i++) {
-                const hpRatio = (i * 100) / this._enemy.mhp;
-                if (hpRatio < 1) { // Only draw if not at the end
-                    const xPos = Math.floor(outlineSize + this._hpGaugeWidth * hpRatio - markerWidth / 2);
-                    // Draw black outline
-                    this.bitmap.fillRect(xPos - 1, 0, markerWidth + 1, markerHeight, '#000000');
-                    // Draw white marker
-                    this.bitmap.fillRect(xPos, 1, markerWidth, markerHeight - 2, '#e1cb89');
-                }
+            if (this.visible) {
+                this.checkHpChange();
+                this.updateShake();
+                this.updateGhostHp();
+                this.updatePosition();
+                this.syncWithBreathing();
+                this.redraw();
             }
-        }
-
-        getHoveredEnemy() {
-            const enemyWindow = SceneManager._scene._enemyWindow;
-            if (enemyWindow && enemyWindow.active) {
-                return enemyWindow.enemy();
-            }
-            return null;
         }
     }
 
@@ -314,12 +300,12 @@
 
     Scene_Battle.prototype.updateEnemyHpGaugeHover = function() {
         const hoveredEnemy = this._enemyWindow && this._enemyWindow.active ? this._enemyWindow.enemy() : null;
-        this._spriteset._enemyHpGauges.forEach(hpGauge => {
-            if (hpGauge._enemy !== hoveredEnemy) {
-                hpGauge.scale.set(hpGauge._hpGaugeScale, hpGauge._hpGaugeScale); // Reset scale if hover is canceled or changed
-                hpGauge._breathingStartFrame = Graphics.frameCount; // Reset breathing start frame
-                hpGauge.updatePosition(); // Reset position when not hovered
-            }
-        });
+        if (this._spriteset && this._spriteset._enemyHpGauges) {
+            this._spriteset._enemyHpGauges.forEach(hpGauge => {
+                if (hpGauge._enemy !== hoveredEnemy) {
+                    hpGauge._breathingStartFrame = Graphics.frameCount;
+                }
+            });
+        }
     };
 })();

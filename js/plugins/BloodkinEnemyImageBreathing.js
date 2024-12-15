@@ -24,17 +24,24 @@
  * @text Base Movement Range
  * @type number
  * @min 10
- * @max 100
- * @desc Base pixel range for crosshair movement. Will be modified by accuracy. Default: 20
+ * @desc Base pixel range for crosshair movement. Will be modified by accuracy.
  * @default 20
  * 
  * @param Max Movement Range
  * @text Max Movement Range
  * @type number
  * @min 20
- * @max 200
- * @desc Maximum pixel range for crosshair movement at 0% accuracy. Default: 100
+ * @desc Maximum pixel range for crosshair movement at 0% accuracy.
  * @default 100
+ * 
+ * @param Crosshair Scale
+ * @text Crosshair Scale
+ * @type number
+ * @decimals 2
+ * @min 0.1
+ * @max 5.0
+ * @desc Scale factor for the crosshair size. Default: 1.0
+ * @default 1.0
  * 
  * @help
  * This plugin adds:
@@ -44,6 +51,7 @@
  * 4. Perfect accuracy (100% or more) shows a special stable crosshair
  * 5. Displays hit rate percentage when below 100%
  * 6. Different crosshair for physical and magical attacks
+ * 7. Adjustable crosshair size via plugin parameters
  * 
  * Required Images:
  * - img/pictures/TargettingCrosshair50x50 (normal physical crosshair)
@@ -63,6 +71,7 @@
     const breathingSpeed = Number(parameters['Breathing Speed'] || 120);
     const baseMovementRange = Number(parameters['Base Movement Range'] || 20);
     const maxMovementRange = Number(parameters['Max Movement Range'] || 100);
+    const crosshairScale = Number(parameters['Crosshair Scale'] || 1.0);
 
     let lastHoveredEnemy = null;
     let frameCounter = 0;
@@ -166,7 +175,8 @@
     };
 
     const calculateMovementRange = (hitChance) => {
-        return baseMovementRange + (maxMovementRange - baseMovementRange) * (1 - hitChance);
+        // No maximum limit on movement range
+        return baseMovementRange + ((1 - hitChance) * baseMovementRange * 10);
     };
     
     //-----------------------------------------------------------------------------
@@ -249,6 +259,9 @@
         this._currentRotation = 0;
         this._targetBattler = null;
         this._lastSkillType = null;
+        
+        // Apply crosshair scale from parameters
+        this.scale.set(crosshairScale, crosshairScale);
     };
 
     Sprite_TargetingCrosshair.prototype.setTargetBattler = function(battler) {
