@@ -52,6 +52,7 @@ Enemy Characters/Battlebacks - A.I(MidJourney)
 Enemy Characters/Battlebacks Remixing - Bloodkin
 Some Tilesets - Bloodkin
 Effekseer Effects - Bloodkin
+Stealthbush tile - whtdragon
 
 Writing:
 Bloodkin
