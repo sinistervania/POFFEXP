@@ -125,5 +125,6 @@ var $plugins =
 {"name":"BloodkinFootstepTracker","status":true,"description":"Dynamic stepping noise system based on player region and equipment, plays SE with proper delay, stops SE when player stops, optimized for performance.","parameters":{"EnableSteppingSounds":"true"}},
 {"name":"CustomPlayerSpeed","status":false,"description":"Adjust player movement speed to a custom intermediate value.","parameters":{"Custom Speed":"3.50"}},
 {"name":"BloodkinPlayerSprite","status":false,"description":"Allows player sprites to use 6 frames for walking animations instead of the default 3 frames.","parameters":{}},
-{"name":"SnowSpriteImgManager","status":true,"description":"v1.0 Manages player sprite changes based on region and states","parameters":{}}
+{"name":"SnowSpriteImgManager","status":true,"description":"v1.0 Manages player sprite changes based on region and states","parameters":{}},
+{"name":"SnakeKillerPluginTest","status":true,"description":"","parameters":{}}
 ];

@@ -37,7 +37,7 @@ Bloodkin
 
 Art:
 RTP - RPGMakerMZ/RPGMakerMV/RpgMakerVXAce/RPGMAKERXP
-PARRALAX MAPPING: Sturmfels, 
+PARRALAX MAPPING: Sturmfels, Comshou, Sturmfels, PVGames
 UI elements, some sprites - Bloodkin
 Various map tiles, sprites, and more art - Avery https://forums.rpgmakerweb.com/index.php?threads/avys-mv-stuff.53317/ (need to give free copy)
 Various animal sprites - whtdragon https://forums.rpgmakerweb.com/index.php?threads/whtdragons-animals-and-running-horses-now-with-more-dragons.53552/ 
