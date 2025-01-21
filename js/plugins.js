@@ -110,7 +110,7 @@ var $plugins =
 {"name":"BloodkinPhantomStates","status":true,"description":"","parameters":{}},
 {"name":"SnakePartyAPTrackerHUDMaker","status":true,"description":"","parameters":{}},
 {"name":"RemoveSkillCostScript","status":true,"description":"Removes MP/TP cost restrictions from skill usage while keeping cost display","parameters":{}},
-{"name":"BloodkinSkillFailEffect","status":true,"description":"Allows skills to be selected regardless of resource costs but plays a sound effect if costs are insufficient during selection.","parameters":{}},
+{"name":"BloodkinSkillFailEffect","status":false,"description":"Allows skills to be selected regardless of resource costs but plays a sound effect if costs are insufficient during selection.","parameters":{}},
 {"name":"BloodkinPlayerIcons","status":true,"description":"Displays grouped state icons above players' HP bars with tooltips.","parameters":{"Default Icon Offset X":"100","Default Icon Offset Y":"0","Tooltip Update Interval":"10"}},
 {"name":"BloodkinPlayerMPBar","status":true,"description":"Custom MP bar for Actor 1 with ghost gauge, shake effect, and markers.","parameters":{"Frame Image":"GaugeFrame"}},
 {"name":"BloodkinSkillWindowMove2","status":true,"description":"","parameters":{}},
@@ -126,5 +126,5 @@ var $plugins =
 {"name":"CustomPlayerSpeed","status":false,"description":"Adjust player movement speed to a custom intermediate value.","parameters":{"Custom Speed":"3.50"}},
 {"name":"BloodkinPlayerSprite","status":false,"description":"Allows player sprites to use 6 frames for walking animations instead of the default 3 frames.","parameters":{}},
 {"name":"SnowSpriteImgManager","status":true,"description":"v1.0 Manages player sprite changes based on region and states","parameters":{}},
-{"name":"SnakeKillerPluginTest","status":true,"description":"","parameters":{}}
+{"name":"SnakeKillerPluginTest","status":false,"description":"","parameters":{}}
 ];
