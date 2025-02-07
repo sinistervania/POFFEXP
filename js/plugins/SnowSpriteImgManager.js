@@ -21,6 +21,10 @@
 
     // Define sprite paths
     const SPRITE_DEFAULT = "$SnowSpriteHD3";        // Default sprite
+    const SPRITE_GREATSWORD = "$SnowSpriteHD3_Greatsword4";        // Greatsword sprite
+    const SPRITE_GAUNTLETS = "$SnowSpriteHD3_Gauntlets";        // Gauntlets sprite
+    const SPRITE_RAPIER = "$SnowSpriteHD3_Rapier3";        // Rapier sprite
+    const SPRITE_ARMINGSWORD = "$SnowSpriteHD3_ArmingSword6";        // ArmingSword sprite
     const SPRITE_STEALTH = "$SnowSpriteHD3STEALTH"; // Stealth sprite
     const SPRITE_ARMOR = "$SnowSpriteHD3ARMOR";     // Armored sprite
 
@@ -51,9 +55,24 @@
         // Access states through the party leader
         if ($gameParty && $gameParty.leader()) {
             const leader = $gameParty.leader();
+            //Icebreaker Armor
             if (leader.isStateAffected(71) || leader.isStateAffected(176)) {
                 return SPRITE_ARMOR;
+            //Greatsword
+            } else if (leader.isStateAffected(188)) {
+                return SPRITE_GREATSWORD;
+            //Gauntlets
+            } else if (leader.isStateAffected(78)) {
+                return SPRITE_GAUNTLETS;
             }
+            //Rapier
+            else if (leader.isStateAffected(74)) {
+            return SPRITE_RAPIER;
+            }
+            //ArmingSword
+            else if (leader.isStateAffected(35)) {
+                return SPRITE_ARMINGSWORD;
+                }
         }
         
         // Default sprite
